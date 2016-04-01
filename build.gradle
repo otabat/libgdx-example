@@ -1,0 +1,89 @@
+buildscript {
+    repositories {
+      jcenter()
+    }
+    dependencies {
+      classpath 'com.android.tools.build:gradle:1.5.0'
+    }
+}
+
+allprojects {
+  version = '1.0.0'
+  ext {
+    kawaJar = System.getenv('KAWA_JAR')
+    gdxVersion = '1.9.2'
+  }
+
+ repositories {
+    mavenCentral()
+  }
+}
+
+project(":desktop") {
+  apply plugin: 'java'
+
+  sourceCompatibility = '1.7'
+  targetCompatibility = '1.7'
+  [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+  def classesDir = new File("build/classes")
+
+  dependencies {
+    compile files(project.kawaJar)
+    compile "com.badlogicgames.gdx:gdx:$gdxVersion"
+    compile "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
+    compile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+  }
+  
+  task compile(type: Exec, dependsOn: clean) {
+    commandLine '../script/kawa-desktop-compile.sh'
+  }
+
+  task uberJar(type: Jar, dependsOn: compile) {
+    from files(classesDir)
+    from files(new File('../all/assets'))
+    from {configurations.compile.collect {zipTree(it)}}
+ 
+    manifest {
+      attributes 'Main-Class': 'org.libgdx.example.core'
+    }
+  }
+
+  task run(type: JavaExec) {
+    main="-jar"
+    args files("build/libs/desktop-${version}.jar")
+    ignoreExitValue=true
+  }
+}
+
+project(":android") {
+  apply plugin: "android"
+
+  configurations { natives }
+
+  dependencies {
+    compile project(":all")
+    compile "com.badlogicgames.gdx:gdx-backend-android:$gdxVersion"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-armeabi-v7a"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-arm64-v8a"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86"
+    natives "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-x86_64"
+    compile files(project.kawaJar)
+    compile files('build/libgdx-example.jar')
+  }
+}
+
+project(":all") {
+  apply plugin: "java"
+
+  sourceCompatibility = 1.7
+  targetCompatibility = 1.7
+  [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+  dependencies {
+      compile "com.badlogicgames.gdx:gdx:$gdxVersion"
+  }
+}
+
+task compile(dependsOn: ':desktop:compile') {}

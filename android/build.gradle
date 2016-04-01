@@ -1,0 +1,71 @@
+android {
+  apply plugin: "android"
+  
+  buildToolsVersion '23.0.2'
+  compileSdkVersion 23
+ 
+  def classesDir = new File("build/classes")
+  def resourcesDir = new File("resources")
+ 
+  sourceSets {
+    main {
+      manifest.srcFile 'AndroidManifest.xml'
+      java.srcDirs = ['src']
+      aidl.srcDirs = ['src']
+      renderscript.srcDirs = ['src']
+      res.srcDirs = ['res']
+      assets.srcDirs = ['../all/assets']
+      jniLibs.srcDirs = ['libs']
+    }       
+ 
+    instrumentTest.setRoot('tests')
+  }           
+
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_7
+    targetCompatibility JavaVersion.VERSION_1_7
+  }
+
+  task compile(type: Exec, dependsOn: clean) {
+    commandLine '../script/kawa-android-compile.sh'
+  }
+
+  task kawaJar(type: Exec, dependsOn: compile) {
+    commandLine 'jar', 'cvf', 'build/libgdx-example.jar', '-C', 'build/classes/', '.'
+  }
+ 
+  defaultConfig {
+    applicationId "org.libgdx.example"
+    minSdkVersion 8
+    targetSdkVersion 23
+  }       
+ 
+  task copyAndroidNatives() {
+    file("libs/armeabi/").mkdirs();
+    file("libs/armeabi-v7a/").mkdirs();
+    file("libs/arm64-v8a/").mkdirs();
+    file("libs/x86_64/").mkdirs();
+    file("libs/x86/").mkdirs();
+  
+    configurations.natives.files.each { jar ->
+      def outputDir = null
+      if(jar.name.endsWith("natives-arm64-v8a.jar")) outputDir = file("libs/arm64-v8a")
+      if(jar.name.endsWith("natives-armeabi-v7a.jar")) outputDir = file("libs/armeabi-v7a")        
+      if(jar.name.endsWith("natives-armeabi.jar")) outputDir = file("libs/armeabi")
+      if(jar.name.endsWith("natives-x86_64.jar")) outputDir = file("libs/x86_64")
+      if(jar.name.endsWith("natives-x86.jar")) outputDir = file("libs/x86")
+      if(outputDir != null) {
+        copy {
+          from zipTree(jar)
+          into outputDir
+          include "*.so"
+        }
+      }
+    }
+  }
+
+  task run(type: Exec) {
+    def adb = "$System.env.ANDROID_HOME/platform-tools/adb"
+    commandLine "$adb", 'shell', 'am', 'start', '-n', 'org.libgdx.example/org.libgdx.example.AndroidLauncher'
+  }
+}
