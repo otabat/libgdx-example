@@ -6,8 +6,8 @@
   (batch ::SpriteBatch)
   (image ::Texture)
   ((show)
-   (set! batch (make SpriteBatch))
-   (set! image (make Texture "badlogic.jpg")))
+   (set! batch (SpriteBatch))
+   (set! image (Texture "badlogic.jpg")))
   ((render delta ::float)
    (Gdx:gl:glClearColor 1.0 0.0 0.0 0.0)
    (Gdx:gl:glClear (bitwise-ior GL20:GL_COLOR_BUFFER_BIT

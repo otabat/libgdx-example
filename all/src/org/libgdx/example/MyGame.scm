@@ -3,4 +3,4 @@
 
 (define-simple-class org.libgdx.example.MyGame (Game)
   ((create)
-   ((this):setScreen (make MyScreen))))
+   ((this):setScreen (MyScreen))))
