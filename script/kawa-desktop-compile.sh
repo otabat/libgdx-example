@@ -2,7 +2,6 @@
 
 PROJECT_HOME=$KAWA_WORKSPACE_HOME/libgdx-example
 
-
 cd $PROJECT_HOME/all/src
 java \
  -Dfile.encoding=UTF-8 \
@@ -11,7 +10,6 @@ java \
  --warn-as-error \
  --target 7 \
  -C org/libgdx/example/MyScreen.scm
-
 
 cd $PROJECT_HOME/all/src
 java \
